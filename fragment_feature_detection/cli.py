@@ -317,7 +317,7 @@ def dump_df_to_ms2(
     logger.info(f"Starting to dump ms2 file with params: {extractor_options}...")
     feature_df_to_ms2(
         pd.read_parquet(parquet_path),
-        output_dir / parquet_path.with_suffix(ms2_suffix),
+        output_dir / parquet_path.with_suffix(ms2_suffix).name,
         extractor_options=extractor_options,
     )
     logger.info(f"Finished dumping ms2 file in: {(time.time() - start_time)} seconds.")
