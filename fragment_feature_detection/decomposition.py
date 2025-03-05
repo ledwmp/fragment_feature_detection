@@ -930,7 +930,7 @@ class OptunaSearchReconstructionCV(BaseSearchCV):
                 study.optimize(objective, n_trials=n_trials, callbacks=[callback])
 
             with tempfile.NamedTemporaryFile(
-                dir="/tmp/", suffix=".db"
+                dir=tempfile.gettempdir(), suffix=".db"
             ) as temp_db, Manager() as manager:
                 # Get root logger, create queue, start a queuelistiner, and pass queue to parallel func.
                 logger = logging.getLogger()
