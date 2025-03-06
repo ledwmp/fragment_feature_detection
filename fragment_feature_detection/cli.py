@@ -146,7 +146,7 @@ def convert_mzml_h5long(
         output_dir = Path(file).parent
     else:
         output_dir = Path(output_dir)
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(exist_ok=True, parents=True)
 
     out_fh = output_dir / mzml_path.with_suffix(".h5").name
     logger.info(f"Beginning conversion sample {mzml_path} to h5 long...")
@@ -187,7 +187,7 @@ def process_mzml(
     if not output_dir:
         output_dir = mzml_path.parent
     output_dir = Path(output_dir)
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(exist_ok=True, parents=True)
 
     # Read config_ini_file from arguments or create default config.
     if config_ini_file is not None:

@@ -2,6 +2,7 @@ import base64
 import logging
 import numbers
 import pickle
+import platform
 import tempfile
 import time
 import warnings
@@ -938,7 +939,13 @@ class OptunaSearchReconstructionCV(BaseSearchCV):
                 listener = QueueListener(log_queue, *logger.handlers)
                 listener.start()
 
-                storage_string = f"sqlite:///{temp_db.name}"
+                # TODO: Figure out why windows temp storage isn't working for optuna database.
+                # Try this: storage_string = f"sqlite:///{str(Path(temp_db.name).resolve().as_posix())}"
+                if platform.system() == "Windows":
+                    storage_string = f"sqlite:///{str((Path().cwd() / 'optuna_tuning_db.db').resolve())}"
+                else:
+                    storage_string = f"sqlite:///{str(Path(temp_db.name).resolve())}"
+
                 study = optuna.create_study(
                     storage=storage_string,
                     directions=["maximize" for _ in self.objective_params],
