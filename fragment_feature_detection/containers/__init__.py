@@ -177,18 +177,33 @@ def add_ms1_features_scanwindow(
             (ms1_df["rtStart"] < w.retention_time[-1])
             & (ms1_df["rtEnd"] > w.retention_time[0])
         ]
-        sub_ms1_df.loc[:, "mz_isotopes"] = sub_ms1_df.apply(
-            lambda x: [
-                x.mz + (i * isotope_mu / x.charge)
-                for i in range(0, x.nIsotopes)
-                if x.mz + (i * isotope_mu / x.charge)
-                >= getattr(w, "_gpf_low", w._gpf - 1.0)
-                and x.mz + (i * isotope_mu / x.charge)
-                <= getattr(w, "_gpf_high", w._gpf + 1.0)
-            ],
+        # If statement ensure that apply returns a series regardless of whether
+        # sub_ms1_df is empty or not. Need to return series for map below.
+        mz_isotopes = sub_ms1_df.apply(
+            lambda x: (
+                [
+                    x.mz + (i * isotope_mu / x.charge)
+                    for i in range(0, x.nIsotopes)
+                    if x.mz + (i * isotope_mu / x.charge)
+                    >= getattr(w, "_gpf_low", w._gpf - 1.0)
+                    and x.mz + (i * isotope_mu / x.charge)
+                    <= getattr(w, "_gpf_high", w._gpf + 1.0)
+                ]
+                if not sub_ms1_df.empty
+                else None
+            ),
             axis=1,
         )
-        sub_ms1_df = sub_ms1_df.loc[sub_ms1_df["mz_isotopes"].map(lambda x: len(x) > 0)]
+        sub_ms1_df = sub_ms1_df.loc[mz_isotopes.map(lambda x: len(x) > 0)]
+        # TODO: Replace with below:
+        # mz_isotopes = sub_ms1_df.apply(
+        #     lambda x: np.where(
+        #         (x.mz + (np.arange(x.nIsotopes) * isotope_mu / x.charge) >= getattr(w, "_gpf_low", sw._gpf - 1.0)) &
+        #         (x.mz + (np.arange(x.nIsotopes) * isotope_mu / x.charge) <= getattr(w, "_gpf_high", sw._gpf + 1.0)),
+        #     )[0].sum() if not sub_ms1_df.empty else [],
+        #     axis=1
+        # )
+        # sub_ms1_df = sub_ms1_df.loc[mz_isotopes > 0]
 
         ms1_features = []
 

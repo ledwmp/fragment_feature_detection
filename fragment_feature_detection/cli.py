@@ -69,14 +69,21 @@ def configure_logger(fw: Optional[Callable] = None):
             context = click.get_current_context()
             subcommand = context.info_name
             if "file" in context.params:
-                path = Path(context.params["file"])
+                if (
+                    "output_dir" in context.params
+                    and context.params["output_dir"] is not None
+                ):
+                    path = Path(context.params["output_dir"])
+                else:
+                    path = Path(context.params["file"]).parent
+                file = Path(context.params["file"])
                 # Add file handler that logs into the experiment directory.
                 file_handler = logging.FileHandler(
                     "{path}/{:%Y%m%d-%H%M%S}__{cmd}__{file}.log".format(
                         datetime.now(),
                         cmd=subcommand,
-                        path=path.parent,
-                        file=path.stem,
+                        path=path,
+                        file=file.stem,
                     ),
                     mode="w",
                 )
@@ -256,10 +263,10 @@ def process_mzml(
         fit_ms1_ms2_feature_matching_msrun(msrun, n_jobs=n_jobs, config=config)
 
     features_df = dump_features_to_df_msrun(msrun, config=config)
-    features_df.to_parquet(Path(file).with_suffix(".features.parq"))
+    features_df.to_parquet(output_dir / Path(file).with_suffix(".features.parq").name)
 
     # Write ini file.
-    config.to_ini(Path(file).with_suffix(".out.ini"))
+    config.to_ini(output_dir / Path(file).with_suffix(".out.ini").name)
 
     msrun.close()
 
